@@ -663,7 +663,7 @@ MonoBehaviour:
   - {fileID: 787858877}
   _spawnRate: 1
   _spawnDelay: 1
-  _poolSize: 10
+  _poolSize: 5
   _poolMaxSize: 10
 --- !u!4 &854034310
 Transform:

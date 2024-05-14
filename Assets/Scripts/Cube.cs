@@ -22,6 +22,7 @@ public class Cube : MonoBehaviour, ISpawnable
     private void Awake()
     {
         _renderer = GetComponent<Renderer>();
+        _rigidbody = GetComponent<Rigidbody>();
     }
 
     public void OnSpawn()
