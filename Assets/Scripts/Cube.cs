@@ -1,51 +1,54 @@
 using UnityEngine;
 
-[RequireComponent (typeof(Rigidbody))]
-[RequireComponent (typeof(Renderer))]
-public class Cube : MonoBehaviour, ISpawnable 
+[RequireComponent(typeof(Rigidbody))]
+public class Cube : MonoBehaviour, ISpawnable
 {
-    [SerializeField] private Color _defaultColor;
+    [SerializeField] private ColorChanger _colorChanger;
     [SerializeField, Min(0)] private float _vanishMinDelay;
     [SerializeField, Min(0)] private float _vanishMaxDelay;
 
-    private Renderer _renderer;
     private Rigidbody _rigidbody;
 
     private bool _isChanged = false;
 
     private void OnValidate()
     {
-        if(_vanishMinDelay > _vanishMaxDelay)
+        if (_vanishMinDelay > _vanishMaxDelay)
             _vanishMinDelay = _vanishMaxDelay;
     }
 
     private void Awake()
     {
-        _renderer = GetComponent<Renderer>();
         _rigidbody = GetComponent<Rigidbody>();
     }
 
     public void OnSpawn()
     {
-        _renderer.material.color = _defaultColor;
+        _colorChanger.ChangeToDefault();
         _rigidbody.velocity = Vector3.zero;
         _isChanged = false;
     }
 
-    public void OnCollide()
+    private void OnCollide()
     {
-        if(_isChanged == false)
-        {
-            float vanishDelay = Random.Range(_vanishMinDelay, _vanishMaxDelay);
-            _renderer.material.color = Random.ColorHSV();
-            _isChanged = true;
+        float vanishDelay = Random.Range(_vanishMinDelay, _vanishMaxDelay);
+        _colorChanger.ChangeToRandom();
+        _isChanged = true;
 
-            Invoke(nameof(Vanish), vanishDelay);
-        }
+        Invoke(nameof(Vanish), vanishDelay);
     }
 
     private void Vanish()
     {
-        Spawner.Instance.ReleaseObject(gameObject);
+        Spawner.Instance.ReleaseCube(this);
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if(_isChanged == false)
+        {
+            if (collision.gameObject.TryGetComponent(out Platform _))
+                OnCollide();
+        }
     }
 }

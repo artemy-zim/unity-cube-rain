@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 5366012655838728846}
   - component: {fileID: 3046785729475365253}
   - component: {fileID: 998033139105159693}
+  - component: {fileID: 8704692733562666488}
   - component: {fileID: 6004378199141796399}
   m_Layer: 0
   m_Name: Cube
@@ -119,10 +120,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a6d35635d448c224a84affbdbfe85e04, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _spawner: {fileID: -7743156513290323685, guid: 6fb7eeb875fa31046bf93968797b2f18, type: 3}
-  _defaultColor: {r: 1, g: 1, b: 1, a: 1}
+  _colorChanger: {fileID: 8704692733562666488}
   _vanishMinDelay: 2
   _vanishMaxDelay: 5
+--- !u!114 &8704692733562666488
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9201204464801172443}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f3c9b363d79516419fcb18ce5e6eb1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _defaultColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!54 &6004378199141796399
 Rigidbody:
   m_ObjectHideFlags: 0

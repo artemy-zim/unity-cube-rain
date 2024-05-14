@@ -3,7 +3,7 @@ using UnityEngine.Pool;
 
 public class Spawner : MonoBehaviour
 {
-    [SerializeField] private GameObject _prefab;
+    [SerializeField] private Cube _cube;
     [SerializeField] private SpawnPoint[] _spawnPoints;
     [SerializeField, Min(0)] private float _spawnRate;
     [SerializeField, Min(0)] private float _spawnDelay;
@@ -11,7 +11,7 @@ public class Spawner : MonoBehaviour
     [SerializeField, Min(0)] private int _poolSize;
     [SerializeField, Min(0)] private int _poolMaxSize;
 
-    private ObjectPool<GameObject> _pool;
+    private ObjectPool<Cube> _cubePool;
 
     public static Spawner Instance { get; private set; }
 
@@ -25,11 +25,11 @@ public class Spawner : MonoBehaviour
     {
         Instance = this;
 
-        _pool = new ObjectPool<GameObject>(
-            createFunc: () => Instantiate(_prefab),
-            actionOnGet: (obj) => _spawnPoints[Random.Range(0, _spawnPoints.Length)].TrySpawn(obj),
-            actionOnRelease: (obj) => obj.SetActive(false),
-            actionOnDestroy: (obj) => Destroy(obj),
+        _cubePool = new ObjectPool<Cube>(
+            createFunc: () => Instantiate(_cube),
+            actionOnGet: (cube) => TrySpawn(cube),
+            actionOnRelease: (cube) => cube.gameObject.SetActive(false),
+            actionOnDestroy: (cube) => Destroy(cube),
             collectionCheck: true,
             defaultCapacity: _poolSize,
             maxSize: _poolMaxSize
@@ -38,16 +38,26 @@ public class Spawner : MonoBehaviour
 
     private void Start()
     {
-        InvokeRepeating(nameof(GetObject), _spawnDelay, _spawnRate);
+        InvokeRepeating(nameof(GetCube), _spawnDelay, _spawnRate);
+    }
+    public void ReleaseCube(Cube cube)
+    {
+        _cubePool.Release(cube);
     }
 
-    private void GetObject()
+    private void GetCube()
     {
-        _pool.Get();
+        _cubePool.Get();
     }
 
-    public void ReleaseObject(GameObject gameObject)
+    private void TrySpawn(Cube cube)
     {
-        _pool.Release(gameObject);
+        Vector3 position = _spawnPoints[Random.Range(0, _spawnPoints.Length)].transform.position;
+
+        cube.transform.position = position;
+        cube.gameObject.SetActive(true);
+
+        cube.OnSpawn();
     }
 }
+
