@@ -1,19 +1,19 @@
+using System;
 using UnityEngine;
 using UnityEngine.Pool;
 
-public class Spawner : MonoBehaviour
+public abstract class Spawner<T> : MonoBehaviour where T : MonoBehaviour, ISpawnable
 {
-    [SerializeField] private Cube _cube;
-    [SerializeField] private SpawnPoint[] _spawnPoints;
-    [SerializeField, Min(0)] private float _spawnRate;
-    [SerializeField, Min(0)] private float _spawnDelay;
-
+    [SerializeField] private T _spawnable;
     [SerializeField, Min(0)] private int _poolSize;
     [SerializeField, Min(0)] private int _poolMaxSize;
 
-    private ObjectPool<Cube> _cubePool;
+    private ObjectPool<T> _pool;
+    private int _createdCount;
+    private int _activeCount;
 
-    public static Spawner Instance { get; private set; }
+    public event Action<int> OnCreatedChanged;
+    public event Action<int> OnActiveChanged;
 
     private void OnValidate()
     {
@@ -23,41 +23,39 @@ public class Spawner : MonoBehaviour
 
     private void Awake()
     {
-        Instance = this;
-
-        _cubePool = new ObjectPool<Cube>(
-            createFunc: () => Instantiate(_cube),
-            actionOnGet: (cube) => TrySpawn(cube),
-            actionOnRelease: (cube) => cube.gameObject.SetActive(false),
-            actionOnDestroy: (cube) => Destroy(cube),
+        _pool = new ObjectPool<T>(
+            createFunc: () => Instantiate(_spawnable),
+            actionOnGet: (spawnable) => TrySpawn(spawnable),
+            actionOnRelease: (spawnable) => spawnable.gameObject.SetActive(false),
+            actionOnDestroy: (spawnable) => Destroy(spawnable),
             collectionCheck: true,
             defaultCapacity: _poolSize,
             maxSize: _poolMaxSize
             );
+
+        OnCreatedChanged?.Invoke(_createdCount);
+        OnActiveChanged?.Invoke(_activeCount);
     }
 
-    private void Start()
+    protected void GetPrefab()
     {
-        InvokeRepeating(nameof(GetCube), _spawnDelay, _spawnRate);
+        _pool.Get();
+
+        _createdCount++;
+        OnCreatedChanged?.Invoke(_createdCount);
+
+        _activeCount++;
+        OnActiveChanged?.Invoke(_activeCount);
     }
-    public void ReleaseCube(Cube cube)
+
+    protected void Release(T spawnable)
     {
-        _cubePool.Release(cube);
+        _pool.Release(spawnable);
+
+        _activeCount--;
+        OnActiveChanged?.Invoke(_activeCount);
     }
 
-    private void GetCube()
-    {
-        _cubePool.Get();
-    }
-
-    private void TrySpawn(Cube cube)
-    {
-        Vector3 position = _spawnPoints[Random.Range(0, _spawnPoints.Length)].transform.position;
-
-        cube.transform.position = position;
-        cube.gameObject.SetActive(true);
-
-        cube.OnSpawn();
-    }
+    protected abstract void TrySpawn(T spawnable);
 }
 
